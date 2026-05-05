@@ -402,3 +402,76 @@ select.input {
     grid-template-columns: 1fr;
   }
 }
+
+/* -----------------------------------------------
+   Shared page styles (used across all pages)
+----------------------------------------------- */
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.page-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.page-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.dash-loading {
+  display: flex;
+  justify-content: center;
+  padding: 60px 0;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+
+.breadcrumb-link {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.breadcrumb-sep {
+  color: var(--border);
+}
+
+/* Task shared styles */
+.task-due {
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.task-due-overdue {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.task-status-select {
+  padding: 4px 8px;
+  font-size: 12px;
+  width: auto;
+  min-width: 110px;
+}
