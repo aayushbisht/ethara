@@ -208,6 +208,36 @@ async function getDashboardStats(req, res) {
 
     const myTasks = tasks.filter((t) => t.assignedTo === userId);
 
+    // Build tasks-per-user map
+    const userTaskCount = {};
+    tasks.forEach((t) => {
+      if (t.assignedTo) {
+        userTaskCount[t.assignedTo] = (userTaskCount[t.assignedTo] || 0) + 1;
+      }
+    });
+
+    // Fetch usernames for the task assignees
+    const assigneeIds = Object.keys(userTaskCount);
+    let tasksPerUser = [];
+    if (assigneeIds.length) {
+      const users = await db
+        .collection("users")
+        .find(
+          { _id: { $in: assigneeIds.map((id) => new ObjectId(id)) } },
+          { projection: { username: 1, name: 1 } }
+        )
+        .toArray();
+
+      tasksPerUser = users.map((u) => ({
+        userId: u._id.toString(),
+        username: u.username,
+        name: u.name || u.username,
+        taskCount: userTaskCount[u._id.toString()] || 0,
+      }));
+
+      tasksPerUser.sort((a, b) => b.taskCount - a.taskCount);
+    }
+
     const stats = {
       totalProjects: projects.length,
       totalTasks: tasks.length,
@@ -220,6 +250,7 @@ async function getDashboardStats(req, res) {
       overdue: tasks.filter(
         (t) => t.dueDate && new Date(t.dueDate) < now && t.status !== "done"
       ).length,
+      tasksPerUser,
     };
 
     res.json(stats);

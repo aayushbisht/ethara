@@ -56,6 +56,40 @@ export default function Dashboard() {
             <StatusBar label="In Progress" count={stats.byStatus.inProgress} total={stats.totalTasks} color="var(--accent)" />
             <StatusBar label="Done" count={stats.byStatus.done} total={stats.totalTasks} color="var(--success)" />
           </div>
+
+          {stats.tasksPerUser && stats.tasksPerUser.length > 0 && (
+            <>
+              <div className="dash-section-title">Tasks per User</div>
+              <div className="tasks-per-user-table">
+                <div className="tpu-header">
+                  <span>User</span>
+                  <span>Tasks Assigned</span>
+                </div>
+                {stats.tasksPerUser.map((u) => (
+                  <div key={u.userId} className="tpu-row">
+                    <div className="tpu-user">
+                      <div className="tpu-avatar">{(u.name || u.username)[0].toUpperCase()}</div>
+                      <div>
+                        <div className="tpu-name">{u.name || u.username}</div>
+                        <div className="tpu-username">@{u.username}</div>
+                      </div>
+                    </div>
+                    <div className="tpu-count-wrap">
+                      <div className="tpu-bar-track">
+                        <div
+                          className="tpu-bar-fill"
+                          style={{
+                            width: `${Math.round((u.taskCount / stats.totalTasks) * 100)}%`,
+                          }}
+                        />
+                      </div>
+                      <span className="tpu-count">{u.taskCount}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </>
       )}
     </AppLayout>

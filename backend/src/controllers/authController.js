@@ -5,19 +5,24 @@ const { signToken } = require("../utils/jwt");
 // Register a new user
 async function register(req, res) {
   try {
-    const { username, password, role } = req.body;
+    const { name, email, username, password, role } = req.body;
     const db = getDB();
 
-    const existing = await db.collection("users").findOne({ username });
+    // Check for existing username or email
+    const existing = await db.collection("users").findOne({
+      $or: [{ username }, { email: email.toLowerCase() }],
+    });
     if (existing) {
-      return res.status(409).json({ message: "Username already taken" });
+      const field = existing.username === username ? "Username" : "Email";
+      return res.status(409).json({ message: `${field} already taken` });
     }
 
     const hashed = await bcrypt.hash(password, 10);
     const newUser = {
+      name,
+      email: email.toLowerCase(),
       username,
       password: hashed,
-      // only allow admin if explicitly passed; default is member
       role: role === "admin" ? "admin" : "member",
       createdAt: new Date(),
     };
@@ -30,6 +35,8 @@ async function register(req, res) {
       token,
       user: {
         _id: result.insertedId,
+        name: newUser.name,
+        email: newUser.email,
         username: newUser.username,
         role: newUser.role,
       },
@@ -59,7 +66,13 @@ async function login(req, res) {
 
     res.json({
       token,
-      user: { _id: user._id, username: user.username, role: user.role },
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+      },
     });
   } catch (err) {
     res.status(500).json({ message: "Server error", error: err.message });

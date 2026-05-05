@@ -7,7 +7,13 @@ export default function Signup() {
   const { register } = useAuth();
   const navigate = useNavigate();
 
-  const [form, setForm] = useState({ username: "", password: "", role: "member" });
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    username: "",
+    password: "",
+    role: "member",
+  });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,7 +30,7 @@ export default function Signup() {
     }
     setLoading(true);
     try {
-      await register(form.username, form.password, form.role);
+      await register(form.name, form.email, form.username, form.password, form.role);
       navigate("/dashboard");
     } catch (err) {
       setError(err.response?.data?.message || "Registration failed. Please try again.");
@@ -48,6 +54,35 @@ export default function Signup() {
 
         <form onSubmit={handleSubmit} className="auth-form">
           <div className="form-group">
+            <label htmlFor="signup-name">Full Name</label>
+            <input
+              id="signup-name"
+              className="input"
+              type="text"
+              name="name"
+              placeholder="Enter your full name"
+              value={form.name}
+              onChange={handleChange}
+              required
+              autoFocus
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="signup-email">Email</label>
+            <input
+              id="signup-email"
+              className="input"
+              type="email"
+              name="email"
+              placeholder="Enter your email"
+              value={form.email}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
             <label htmlFor="signup-username">Username</label>
             <input
               id="signup-username"
@@ -58,7 +93,6 @@ export default function Signup() {
               value={form.username}
               onChange={handleChange}
               required
-              autoFocus
             />
           </div>
 
