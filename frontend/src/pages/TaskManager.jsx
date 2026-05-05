@@ -14,6 +14,21 @@ const STATUSES = [
 
 const PRIORITIES = ["low", "medium", "high"];
 
+function withAssignedUsername(task, members = []) {
+  if (!task) return task;
+  if (task.assignedToUsername || !task.assignedTo) return task;
+
+  const assignedToId =
+    typeof task.assignedTo === "object"
+      ? task.assignedTo._id || task.assignedTo.id
+      : task.assignedTo;
+
+  const matchedMember = members.find((m) => m.userId?.toString() === assignedToId?.toString());
+  if (!matchedMember?.username) return task;
+
+  return { ...task, assignedToUsername: matchedMember.username };
+}
+
 export default function TaskManager() {
   const { id: projectId } = useParams();
   const { user } = useAuth();
@@ -46,12 +61,13 @@ export default function TaskManager() {
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   function onTaskCreated(task) {
-    setTasks((prev) => [task, ...prev]);
+    setTasks((prev) => [withAssignedUsername(task, project?.members), ...prev]);
     setShowCreate(false);
   }
 
   function onTaskUpdated(updated) {
-    setTasks((prev) => prev.map((t) => (t._id === updated._id ? updated : t)));
+    const normalized = withAssignedUsername(updated, project?.members);
+    setTasks((prev) => prev.map((t) => (t._id === normalized._id ? normalized : t)));
     setEditTask(null);
   }
 
