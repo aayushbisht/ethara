@@ -1,3 +1,23 @@
+/* Inline confirmation UI */
+.inline-confirm {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  animation: fadeIn 0.15s ease;
+}
+
+.inline-confirm-label {
+  font-size: 13px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.member-confirm {
+  display: flex;
+  gap: 4px;
+  animation: fadeIn 0.15s ease;
+}
+
 .breadcrumb {
   display: flex;
   align-items: center;

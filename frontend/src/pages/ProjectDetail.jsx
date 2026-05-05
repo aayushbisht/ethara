@@ -16,6 +16,9 @@ export default function ProjectDetail() {
   const [error, setError] = useState("");
   const [showAddMember, setShowAddMember] = useState(false);
   const [removing, setRemoving] = useState(null);
+  const [confirmRemove, setConfirmRemove] = useState(null); // userId to confirm remove
+  const [showConfirmDelete, setShowConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   async function fetchProject() {
     try {
@@ -31,8 +34,8 @@ export default function ProjectDetail() {
   useEffect(() => { fetchProject(); }, [id]);
 
   async function handleRemoveMember(userId) {
-    if (!window.confirm("Remove this member from the project?")) return;
     setRemoving(userId);
+    setConfirmRemove(null);
     try {
       await api.delete(`/projects/${id}/members/${userId}`);
       setProject((prev) => ({
@@ -40,19 +43,21 @@ export default function ProjectDetail() {
         members: prev.members.filter((m) => m.userId !== userId),
       }));
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to remove member.");
+      setError(err.response?.data?.message || "Failed to remove member.");
     } finally {
       setRemoving(null);
     }
   }
 
   async function handleDeleteProject() {
-    if (!window.confirm("Delete this project and all its tasks? This cannot be undone.")) return;
+    setDeleting(true);
+    setShowConfirmDelete(false);
     try {
       await api.delete(`/projects/${id}`);
       navigate("/projects");
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete project.");
+      setError(err.response?.data?.message || "Failed to delete project.");
+      setDeleting(false);
     }
   }
 
@@ -65,7 +70,9 @@ export default function ProjectDetail() {
   if (error) return <AppLayout><div className="alert alert-error">{error}</div></AppLayout>;
 
   const isAdmin = user?.role === "admin";
-  const isCreator = project?.createdBy === user?._id?.toString();
+  // Compare as strings — handles both plain string and ObjectId-serialized _id
+  const userId = user?._id ? String(user._id) : null;
+  const isCreator = userId && project?.createdBy && project.createdBy === userId;
 
   return (
     <AppLayout>
@@ -85,10 +92,25 @@ export default function ProjectDetail() {
               Add Member
             </button>
           )}
-          {isCreator && (
-            <button className="btn btn-danger btn-sm" onClick={handleDeleteProject}>
-              Delete Project
+          {isCreator && !showConfirmDelete && (
+            <button
+              className="btn btn-danger btn-sm"
+              onClick={() => setShowConfirmDelete(true)}
+              disabled={deleting}
+            >
+              {deleting ? <span className="spinner" /> : "Delete Project"}
             </button>
+          )}
+          {isCreator && showConfirmDelete && (
+            <div className="inline-confirm">
+              <span className="inline-confirm-label">Delete project?</span>
+              <button className="btn btn-danger btn-sm" onClick={handleDeleteProject}>
+                Yes, delete
+              </button>
+              <button className="btn btn-ghost btn-sm" onClick={() => setShowConfirmDelete(false)}>
+                Cancel
+              </button>
+            </div>
           )}
         </div>
       </div>
@@ -109,14 +131,32 @@ export default function ProjectDetail() {
                   <span className={`badge badge-${m.role}`}>{m.role}</span>
                 </div>
                 {isAdmin && m.userId !== project.createdBy && (
-                  <button
-                    className="member-remove"
-                    onClick={() => handleRemoveMember(m.userId)}
-                    disabled={removing === m.userId}
-                    title="Remove member"
-                  >
-                    {removing === m.userId ? <span className="spinner" style={{ width: 14, height: 14 }} /> : <>&times;</>}
-                  </button>
+                  confirmRemove === m.userId ? (
+                    <div className="member-confirm">
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleRemoveMember(m.userId)}
+                        disabled={removing === m.userId}
+                      >
+                        {removing === m.userId ? <span className="spinner" style={{ width: 12, height: 12 }} /> : "Remove"}
+                      </button>
+                      <button
+                        className="btn btn-ghost btn-sm"
+                        onClick={() => setConfirmRemove(null)}
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      className="member-remove"
+                      onClick={() => setConfirmRemove(m.userId)}
+                      disabled={removing === m.userId}
+                      title="Remove member"
+                    >
+                      &times;
+                    </button>
+                  )
                 )}
               </div>
             ))}
