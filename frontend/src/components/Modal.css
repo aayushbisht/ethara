@@ -1,0 +1,7 @@
+/* Modal styles are in index.css — this file intentionally left minimal */
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 24px;
+}
